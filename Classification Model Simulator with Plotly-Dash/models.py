@@ -26,8 +26,10 @@ def buildModel(target, independent, slider, bestModel):
     """
 
     try:
-        X = pd.DataFrame(independent)
-        y = pd.DataFrame(target)
+        #X = pd.DataFrame(independent)
+        #y = pd.DataFrame(target)
+        X = independent
+        y = target
 
         X = X.drop(['Loan_ID'], axis=1)
         trainX, testX, trainy, testy = train_test_split(X, y, train_size= slider/100, random_state=2)        
@@ -70,7 +72,8 @@ def buildModel(target, independent, slider, bestModel):
             x0=0, x1=1, y0=0, y1=1
         )
 
-        fig_ROC.update_yaxes(scaleanchor="x", scaleratio=1)
+        fig_ROC.update_yaxes(range=[0, 1])
+        #fig_ROC.update_yaxes(scaleanchor="x", scaleratio=1)
         fig_ROC.update_xaxes(constrain='domain')
 
 
@@ -82,8 +85,8 @@ def buildModel(target, independent, slider, bestModel):
 
         # Evaluating model performance at various thresholds
         df_threshold = pd.DataFrame({
-            'False Positive Rate': lr_fpr,
-            'True Positive Rate': lr_tpr
+            'False Positive': lr_fpr,
+            'True Positive': lr_tpr
         }, index=thresholds)
         df_threshold.index.name = "Thresholds"
         df_threshold.columns.name = "Rate"
@@ -93,8 +96,9 @@ def buildModel(target, independent, slider, bestModel):
             
         )
 
-        fig_thresh.update_yaxes(scaleanchor="x", scaleratio=1)
-        fig_threshold = fig_thresh.update_xaxes(range=[0, 1], constrain='domain')
+        fig_thresh.update_yaxes(range=[0, 1])
+        #fig_thresh.update_yaxes(scaleanchor="x", scaleratio=1)
+        fig_threshold = fig_thresh.update_xaxes(range=[0, 1])
 
         # precision tp / (tp + fp)
         precision = round(precision_score(testy, yhat),2)

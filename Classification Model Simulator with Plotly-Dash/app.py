@@ -3,7 +3,7 @@ import pickle
 import copy
 import pathlib
 import urllib.request
-import dash_table
+
 import dash
 import math
 import pandas as pd
@@ -29,7 +29,7 @@ from multiModel import multiModel
 from urllib.parse import quote as urlquote
 from flask import Flask, send_from_directory
 from dash.dependencies import Input, Output, State, ClientsideFunction
-
+from dash import dash_table
 
 models = ['LGBM', 'Random Forest', 'KNN', 'GNB', 'DT', 'ADABoost','Logistic']
 FONTSIZE = 20
@@ -193,20 +193,7 @@ app.layout = html.Div(
                     id="title",
                 ),
                                 
-                html.Div(
-                    [
-                        toast_datasplit,
-                        toast_model,
-
-                        html.A(
-                            
-                            html.Button("Code", id="learn-more-button"),
-                            href="https://github.com/amitvkulkarni/Data-Apps/tree/main/Classification%20Model%20Simulator%20with%20Plotly-Dash",
-                        )
-                    ],
-                    className="one-third column",
-                    id="button",
-                ),
+                
             ],
             id="header",
             className="row flex-display",
@@ -238,9 +225,9 @@ app.layout = html.Div(
                         dcc.Dropdown(
                             id="select_target",
                             options=[{'label':x, 'value':x} for x in obj_Data.df_train_dummies.columns],
-                            multi=False,
+                            multi=True,
                             value='Loan_Status',
-                            clearable=False,
+                            #clearable=False,
                             className="dcc_control",
                         ),
                          html.P("Select Variables", className="control_label"),
@@ -282,14 +269,15 @@ app.layout = html.Div(
                         ),
                         html.Div(
                             id = 'best-model', style={'color': 'blue', 'fontSize': 15} 
-                        ),html.Br(),
+                        ),
+                        html.Br(),
                         daq.PowerButton(
                             id = 'id-daq-switch-model',
                             on='True',
                             color='#1ABC9C', 
                             size = 75,
                             label = 'Initiate Model Buidling'
-                        ) ,
+                        ),
                                                                                                
                     ],
                     className="pretty_container four columns",
@@ -386,13 +374,13 @@ app.layout = html.Div(
                                             backgroundColor=BGCOLOR
                                         ),
                                         daq.LEDDisplay(
-                                                id='recall',
-                                                #label="Default",
-                                                value=0,
-                                                label = "Recall",
-                                                size=FONTSIZE,
-                                                color = FONTCOLOR,
-                                                backgroundColor=BGCOLOR
+                                            id='recall',
+                                            #label="Default",
+                                            value=0,
+                                            label = "Recall",
+                                            size=FONTSIZE,
+                                            color = FONTCOLOR,
+                                            backgroundColor=BGCOLOR
                                         ),
                                          
                                     ],className="row flex-display",
@@ -423,13 +411,27 @@ app.layout = html.Div(
                                             color = FONTCOLOR,
                                             backgroundColor=BGCOLOR
                                         ),  
-                                        
                                     ],className="row flex-display",
                                 )
-  
                             ],className="row flex-display",
-                        ),                  
-                     
+                        ),
+                        html.Div(
+                            [
+                                html.Div(
+                                    [
+                                        daq.LEDDisplay(
+                                            id='accuracy2',
+                                            #label="Default",
+                                            value=10000,
+                                            label = "TTTTT",
+                                            size=FONTSIZE,
+                                            color = FONTCOLOR,
+                                            backgroundColor=BGCOLOR
+                                        ), 
+                                    ],className="row flex-display",
+                                )
+                            ],className="row flex-display",
+                        ),                    
                     ],
                     className="pretty_container two columns",
                     id="cross-filter-options1",
@@ -494,12 +496,12 @@ app.layout = html.Div(
                         ) ,   
                         html.Br(),
                         html.Div(
-                            #[
+                            [
                                 html.Div(
                                     id='id-insights', style={'color': 'blue', 'fontSize': 15}                     
                                 )
                             
-                            #],className="pretty_container six columns",
+                            ],className="pretty_container six columns",
                         )
                     ],className="pretty_container six columns",
                 ),
@@ -599,8 +601,8 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
         Input("select_models", "value")        
     ]
 )
-def measurePerformance(target, independent, slider, splits, selected_models):
-    fig_ROC, Fig_Precision, fig_Threshold,precision, recall, accuracy, trainX, testX, auc, fig_model, bestModel = multiModel.getModels(target,independent, slider, splits, selected_models)
+def measurePerformance(target, select_independent, slider, splits, select_models):
+    fig_ROC, Fig_Precision, fig_Threshold,precision, recall, accuracy, trainX, testX, auc, fig_model, bestModel = multiModel.getModels(target,select_independent, slider, splits, select_models)
     auc_toast = True if auc < 0.5 else False
     return fig_ROC, Fig_Precision, fig_Threshold, 'Train / Test split size: {} / {}'.format(slider, 100-slider), precision, recall, accuracy,auc, trainX, testX, auc*100, f'The best performing model is {bestModel} with accuracy of {accuracy}, precision of {precision} and recall of {recall} with Area under curve of {auc}. Try for various K FOLD values to explore further.' ,fig_model, f'The top performaing model is {bestModel}', True, auc_toast
 

@@ -603,7 +603,7 @@ Taken from https://codepen.io/chriddyp/pen/bWLwgP.css
    .side-by-side-right{
       display: inline-block;
       width: 48%;
-      float:right;
+      
     }
     .div-for-charts{
       margin: 0px;

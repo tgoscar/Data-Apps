@@ -1,13 +1,16 @@
+from operator import index
 import pandas as pd
 import numpy as np
 import logging
 import lightgbm as lgb
+from pandas.core.frame import DataFrame
 from sklearn import tree
 import plotly.express as px
 #import plotly.graph_objs as go
 import matplotlib.pyplot as plt
 import sklearn.metrics as metrics
 from sklearn.metrics import roc_curve
+from numpy import nan
 from catboost import CatBoostClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
@@ -18,7 +21,8 @@ from sklearn.metrics import roc_auc_score,accuracy_score ,confusion_matrix, f1_s
 from sklearn.model_selection import StratifiedKFold,KFold,GridSearchCV,GroupKFold,train_test_split,StratifiedShuffleSplit
 from defintion import *
 from models import *
-
+import math
+from numpy import nan
 # Logging in DEBUG mode in the file model.log
 logging.basicConfig(filename= 'model.log',  level = logging.DEBUG,format='%(asctime)s:%(levelname)s:%(filename)s:%(funcName)s:%(message)s')
 
@@ -165,7 +169,7 @@ class multiModel:
                 oof_preds += clf.predict_proba(obj_Data.df_test_dummies[feats])
 
                 print("Executing GLM for fold#:", fold_)
-                clf = LogisticRegression()
+                clf = LogisticRegression(max_iter=1000)
                 clf.fit(X_trn,y_trn)
                 predictions = clf.predict(X_val)
                 fun_metrics(predictions, y_val)
@@ -175,17 +179,17 @@ class multiModel:
                 print("==========================================")
                 oof_preds += clf.predict_proba(obj_Data.df_test_dummies[feats])
 
-                final_preds.append(accuracy_score(y_pred=clf.predict(X_val),y_true=y_val))
-                oof_preds += clf.predict_proba(obj_Data.df_test_dummies[feats])
+                #final_preds.append(accuracy_score(y_pred=clf.predict(X_val),y_true=y_val))
+                #oof_preds += clf.predict_proba(obj_Data.df_test_dummies[feats])
                         
 
-                plt.xlabel('False Positive Rate')
-                plt.ylabel('True Positive Rate')
-                plt.legend()
+                #plt.xlabel('False Positive Rate')
+                #plt.ylabel('True Positive Rate')
+                #plt.legend()
                 #plt.show()
                         
             oof_preds  = oof_preds/splits/num_model
-            predictions_sub = [np.argmax(x) for x in oof_preds]
+            #predictions_sub = [np.argmax(x) for x in oof_preds]
             ############print("Predictions for submission: ", predictions_sub )
             print("##################################")
             print("Average Accuracy :",sum(final_preds)/len(final_preds))
@@ -198,6 +202,8 @@ class multiModel:
 
             #modelNames = pd.DataFrame(['CATBOOST','XGBOOST','LGBM','RF','KNN','GNB','DT','ADA','GLM'])
             #modelNames = pd.DataFrame(['LGBM','RF','KNN','GNB','DT','ADA','GLM'])
+            #print(final_preds)
+            #print(selected_models)
             modelNames = pd.DataFrame(selected_models)
             modelName1 = pd.concat([modelNames, d2], axis = 1)
 
@@ -205,18 +211,18 @@ class multiModel:
             #fold_size = splits
             folds = list(range(1, splits+1))
             [s1.append(fold) for fold in folds]
-            #print(f'The final list is {s1}')
+            #rint(f'The final list is {s1}')
 
             #modelName1.columns = ['Model Name','Fold1', 'Fold2']
             modelName1.columns = s1
             modelName1['Avg Accuracy'] = modelName1.mean(axis=1)
-            modelName1.sort_values(by = 'Avg Accuracy', ascending= False, inplace= True)
+            modelName1.sort_values(by = 'Avg Accuracy', ascending= False, inplace = True)
             modelName1.reset_index(inplace = True)
             print(modelName1)
-            bestModel = modelName1.loc[0,:]
-            bestModel = bestModel['Model Name']
-            print('******************************************************************************')
+            bestModel = str(modelName1.loc[0,:]['Model Name'])
             
+            print('******************************************************************************')
+            #print(bestModel)
             return modelName1, bestModel
 
         except:
@@ -247,7 +253,7 @@ class multiModel:
             logging.debug('Model building successful')  
             fig_modelPerformance = px.bar(getModelResults, x= 'Avg Accuracy', y ='Model Name', title= 'Model Performance', orientation='h', color= 'Avg Accuracy')
             #fig_modelPerformance = go.Figure(fig_modelPerformance)
-            return fig_ROC, fig_precision, fig_threshold, precision, recall, accuracy, trainX, testX, lr_auc, fig_modelPerformance, bestModel
+            return fig_ROC, fig_precision, fig_threshold, precision, recall, accuracy, trainX, testX, lr_auc, fig_modelPerformance, bestModel       
         
         except:
             logging.exception('Something went wrong.')
@@ -266,10 +272,12 @@ class multiModel:
             trainX, testX, trainy, testy = train_test_split(X, y, test_size=0.5, random_state=2)
             rf = RandomForestRegressor(n_estimators=100)
             rf.fit(trainX, trainy)
-            
+            #print(obj_Data.df_train_dummies)
             sorted_idx = rf.feature_importances_.argsort()
-            fig_featureImp = px.bar(obj_Data.df_train_dummies.columns[sorted_idx], rf.feature_importances_[sorted_idx],
-                            title= 'Variable Importance')
+            data = pd.DataFrame(rf.feature_importances_[sorted_idx], index = obj_Data.df_train_dummies.columns[sorted_idx], columns = ['importance'])
+            #print(data)
+            #fig_featureImp = px.bar(y = obj_Data.df_train_dummies.columns[sorted_idx], x = rf.feature_importances_[sorted_idx], title= 'Variable Importance')
+            fig_featureImp = px.bar(data, x = 'importance', title= 'Variable Importance')
             return fig_featureImp
 
         except:
