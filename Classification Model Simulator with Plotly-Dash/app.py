@@ -415,23 +415,7 @@ app.layout = html.Div(
                                 )
                             ],className="row flex-display",
                         ),
-                        html.Div(
-                            [
-                                html.Div(
-                                    [
-                                        daq.LEDDisplay(
-                                            id='accuracy2',
-                                            #label="Default",
-                                            value=10000,
-                                            label = "TTTTT",
-                                            size=FONTSIZE,
-                                            color = FONTCOLOR,
-                                            backgroundColor=BGCOLOR
-                                        ), 
-                                    ],className="row flex-display",
-                                )
-                            ],className="row flex-display",
-                        ),                    
+                                     
                     ],
                     className="pretty_container two columns",
                     id="cross-filter-options1",
@@ -551,7 +535,11 @@ def update_text(data):
     cat_features = len([i for i in list(obj_Data.df.columns) if obj_Data.df.dtypes[i] in ['float64']])
     return str(obj_Data.df.shape[0]), str(obj_Data.df.shape[1]), str(numeric_var), str(cat_features)
 
-
+def variableSelection(target, independent, slider):
+    fig_ROC, Fig_Precision, fig_Threshold, precision, recall, accuracy, trainX, testX, auc = buildModel(target,independent, slider)
+    #return fig_ROC, Fig_Precision, fig_Threshold, 'Train / Test split size: {} / {}'.format(slider, 100-slider),'Precision:{}'.format(precision),'Recall: {}'.format(recall),'Accuracy: {}'.format(accuracy)
+    return fig_ROC, Fig_Precision, fig_Threshold, 'Train / Test split size: {} / {}'.format(slider, 100-slider), precision, recall, accuracy,trainX,testX, accuracy, f'The best performing model with accuracy of {accuracy}, precision of {precision} and recall of {recall}'
+    
 @app.callback(
     Output('auto-toast', 'is_open'),
     [Input('slider', 'value')]
